@@ -570,6 +570,11 @@ class _LibraryPageState extends State<LibraryPage> {
           subtitle: Slider(value: c.ropeLength, min: 40, max: 600, onChanged: (v) => _change(() => c.ropeLength = v)),
           trailing: Text('${c.ropeLength.round()} px'),
         ),
+        ListTile(
+          title: const Text('Keep swinging'),
+          subtitle: Slider(value: c.swing, min: 0, max: 25, onChanged: (v) => _change(() => c.swing = v)),
+          trailing: Text(c.swing < .5 ? 'Still' : '${c.swing.round()}°'),
+        ),
       ],
     );
   }

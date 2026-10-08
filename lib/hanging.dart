@@ -77,18 +77,21 @@ class _Rope {
 
   void moveAnchor(Offset to) => pos[0] = prev[0] = to;
 
-  void step(double dt, double t, Offset? push, Offset pushAt, double pushRadius) {
+  /// Advances the cord by [dt]. [swing] is the angle (radians, each side)
+  /// the charms keep swinging at on their own.
+  void step(double dt, double t, Offset? push, Offset pushAt, double pushRadius, double swing) {
     const gravity = 1600.0;
     const damping = .985;
     // A slow, uneven breeze so the charm is never perfectly still.
     final breeze = math.sin(t * .9) * 14 + math.sin(t * 2.3 + 1) * 6;
+    final drive = breeze + _pump(dt, gravity, swing);
     for (var i = 1; i < pos.length; i++) {
       var v = (pos[i] - prev[i]) * damping;
       if (push != null && (pos[i] - pushAt).distance < pushRadius) v += push;
       // Cap speed so a fast flick swings the charm instead of launching it.
       if (v.distance > _maxStep) v = v / v.distance * _maxStep;
       prev[i] = pos[i];
-      pos[i] = pos[i] + v + Offset(breeze, gravity) * dt * dt;
+      pos[i] = pos[i] + v + Offset(drive, gravity) * dt * dt;
     }
     for (var k = 0; k < 24; k++) {
       for (var i = 0; i < pos.length - 1; i++) {
@@ -98,6 +101,27 @@ class _Rope {
         _solve(a, b, len);
       }
     }
+  }
+
+  /// Sideways push that keeps the cord swinging at [swing], like pumping a
+  /// playground swing: push the way it's already moving while the swing is
+  /// smaller than wanted, and let damping take it down when it's bigger
+  /// (after a mouse hit, say). The cord is treated as one pendulum from the
+  /// knot to its last point.
+  double _pump(double dt, double gravity, double swing) {
+    if (swing <= 0) return 0;
+    final d = pos.last - pos[0];
+    final r2 = d.distanceSquared;
+    if (r2 < 1) return 0;
+    final v = (pos.last - prev.last) / dt;
+    final angle = math.atan2(d.dx, d.dy);
+    final angularVelocity = (d.dy * v.dx - d.dx * v.dy) / r2;
+    final omega = math.sqrt(gravity / math.sqrt(r2));
+    // Peak angle this swing will reach (phase-plane amplitude).
+    final amplitude = math.sqrt(angle * angle + math.pow(angularVelocity / omega, 2));
+    if (amplitude >= swing) return 0;
+    final direction = angularVelocity.abs() < 1e-3 ? 1.0 : angularVelocity.sign;
+    return direction * 450;
   }
 
   void _solve(int a, int b, double len) {
@@ -200,9 +224,10 @@ class _HangingCharmsState extends State<HangingCharms> with SingleTickerProvider
 
     const h = 1 / 120;
     final reach = layout.slots.fold(20.0, (m, s) => math.max(m, s.size)) * .55;
+    final swing = widget.config.swing * math.pi / 180;
     var first = true;
     while (acc >= h) {
-      rope.step(h, now.inMicroseconds / 1e6, first ? push : null, at, reach);
+      rope.step(h, now.inMicroseconds / 1e6, first ? push : null, at, reach, swing);
       first = false;
       acc -= h;
     }

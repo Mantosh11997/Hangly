@@ -10,6 +10,7 @@ class HanglyConfig {
     this.ropeLength = 220,
     this.visible = true,
     this.mouseSwing = true,
+    this.swing = 8,
     Set<String>? favourites,
     List<String>? recent,
   }) : charms = charms ?? ['nazar'],
@@ -31,6 +32,10 @@ class HanglyConfig {
   double ropeLength;
   bool visible;
   bool mouseSwing;
+
+  /// How far the charms keep swinging on their own, in degrees each side
+  /// (0 = they settle and hang still).
+  double swing;
   Set<String> favourites;
   List<String> recent;
 
@@ -46,6 +51,7 @@ class HanglyConfig {
     'ropeLength': ropeLength,
     'visible': visible,
     'mouseSwing': mouseSwing,
+    'swing': swing,
     'favourites': favourites.toList(),
     'recent': [...recent],
   };
@@ -58,6 +64,7 @@ class HanglyConfig {
     ropeLength: (j['ropeLength'] as num?)?.toDouble() ?? 220,
     visible: j['visible'] as bool? ?? true,
     mouseSwing: j['mouseSwing'] as bool? ?? true,
+    swing: (j['swing'] as num?)?.toDouble() ?? 8,
     favourites: (j['favourites'] as List?)?.cast<String>().toSet(),
     recent: (j['recent'] as List?)?.cast<String>(),
   );
