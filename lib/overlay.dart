@@ -12,6 +12,7 @@ import 'store.dart';
 import 'store_io.dart';
 import 'win.dart';
 
+const _title = 'Hangly charm';
 const _overlayWidth = 520.0;
 const _anchor = Offset(_overlayWidth / 2, -2);
 
@@ -39,14 +40,16 @@ Future<void> runOverlay(IoStore store) async {
       skipTaskbar: true,
       alwaysOnTop: true,
       titleBarStyle: TitleBarStyle.hidden,
-      title: 'Hangly charm',
+      title: _title,
     ),
     () async {
       await windowManager.setAsFrameless();
       await windowManager.setBackgroundColor(Colors.transparent);
       await windowManager.setIgnoreMouseEvents(true);
+      showLayeredWindow(_title);
       await windowManager.setBounds(rect);
       await windowManager.show(inactive: true);
+      showLayeredWindow(_title);
     },
   );
 
